@@ -1,0 +1,2 @@
+# FriendOrganizer
+Application for organization
