@@ -1,2 +1,2 @@
 # FriendOrganizer
-Application for organization
+Application for organization build with WPF, MVVM and Entity Framework Code First
