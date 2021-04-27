@@ -15,9 +15,9 @@ namespace FriendOrganizer.UI
             Loaded += MainWindow_Loaded;
         }
 
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            this.viewModel.Load();
+            await this.viewModel.LoadAsync();
         }
     }
 }
