@@ -38,10 +38,10 @@ namespace FriendOrganizer.DataAccess
 
             modelBuilder.Entity<Friend>().HasData(friends);
 
-            //modelBuilder.Entity<Friend>()
-            //    .Property(f => f.FirstName)
-            //    .IsRequired()
-            //    .HasMaxLength(50);
+            modelBuilder.Entity<Friend>()
+                .Property(f => f.FirstName)
+                .IsRequired()
+                .HasMaxLength(50);
 
             base.OnModelCreating(modelBuilder);            
         }

@@ -1,6 +1,7 @@
 ﻿using FriendOrganizer.Model;
 using FriendOrganizer.UI.Data;
 using FriendOrganizer.UI.Event;
+using FriendOrganizer.UI.Wrapper;
 using Prism.Commands;
 using Prism.Events;
 using System;
@@ -16,6 +17,7 @@ namespace FriendOrganizer.UI.ViewModel
     {
         private IFriendDataService dataService;
         private IEventAggregator eventAggregator;
+        private FriendWrapper friend;
 
         public FriendDetailViewModel(IFriendDataService dataService, IEventAggregator eventAggregator)
         {
@@ -26,36 +28,22 @@ namespace FriendOrganizer.UI.ViewModel
             SaveCommand = new DelegateCommand(OnSaveExecute, OnSaveCanExecute);
         }
 
-        private async void OnSaveExecute()
-        {
-            await dataService.SaveAsync(Friend);
-            eventAggregator.GetEvent<AfterFriendSaveEvent>().Publish(
-                new AfterFriendSavedEventArgs
-                {
-                    Id = Friend.Id, 
-                    DisplayMember = $"{Friend.FirstName} {Friend.LastName}"
-                });
-        }
-
-        private bool OnSaveCanExecute()
-        {
-            // TODO: Check if friend is valid
-            return true;
-        }
-
-        private async void OnOpenFriendDetailView(int friendId)
-        {
-            await LoadAsync(friendId);
-        }
-
         public async Task LoadAsync(int friendId)
         {
-            Friend = await dataService.GetByIdAsync(friendId);
+            var friend = await dataService.GetByIdAsync(friendId);
+
+            Friend = new FriendWrapper(friend);
+            Friend.PropertyChanged += (s, e) =>
+            {
+                if(e.PropertyName == nameof(Friend.HasErrors))
+                {
+                    ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+                }
+            };
+            ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
         }
 
-        private Friend friend;
-
-        public Friend Friend
+        public FriendWrapper Friend
         {
             get { return friend; }
             private set
@@ -67,5 +55,26 @@ namespace FriendOrganizer.UI.ViewModel
 
         public ICommand SaveCommand { get; }
 
+        private async void OnSaveExecute()
+        {
+            await dataService.SaveAsync(Friend.Model);
+            eventAggregator.GetEvent<AfterFriendSaveEvent>().Publish(
+                new AfterFriendSavedEventArgs
+                {
+                    Id = Friend.Id, 
+                    DisplayMember = $"{Friend.FirstName} {Friend.LastName}"
+                });
+        }
+
+        private bool OnSaveCanExecute()
+        {
+            // TODO: Check in addition if friend has changes
+            return Friend!=null && !Friend.HasErrors;
+        }
+
+        private async void OnOpenFriendDetailView(int friendId)
+        {
+            await LoadAsync(friendId);
+        }
     }
 }
